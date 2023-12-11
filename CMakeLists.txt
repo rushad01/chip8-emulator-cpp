@@ -1,6 +1,6 @@
-cmake_minimum_required(VERSION 3.10)
+cmake_minimum_required(VERSION 3.22)
 
-project(OpenGLTemplate)
+project(chip8-emulator-cpp)
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 

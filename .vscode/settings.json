@@ -1,13 +1,17 @@
 {
-  "C_Cpp.default.configurationProvider": "ms-vscode.cmake-tools",
-  "cmake.configureOnOpen": true,
-  //"C_Cpp.intelliSenseEngine": "Disabled",
-  //"clangd.path": "C:Program Files//LLVM//bin//clangd.exe",
+  "C_Cpp.intelliSenseEngine": "disabled",
+  //"C_Cpp.clang_format_path": "C:\\Program Files\\LLVM\\bin",
+  //"clangd.path": "C:\\Program Files\\LLVM\\bin",
+  "editor.inlayHints.enabled": "on",
+  //"cmake.copyCompileCommands": "${workspaceFolder}/compile_commands.json",
   "clangd.arguments": [
-    "-log=verbose",
-    "-pretty",
+    "--enable-config",
     "--background-index",
-    //"--query-driver=/bin/arm-buildroot-linux-gnueabihf-g++", //for cross compile usage
-    "--compile-commands-dir=D:Practice//C++Projects//OpenGLTemplate//build"
-  ]
+    "--log=verbose",
+    "--pretty",
+    "--compile-commands-dir=${workspaceFolder}/build/"
+  ],
+  "[cpp]": {
+    "editor.defaultFormatter": "llvm-vs-code-extensions.vscode-clangd"
+  }
 }
