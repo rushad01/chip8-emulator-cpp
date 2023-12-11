@@ -1,0 +1,13 @@
+{
+  "C_Cpp.default.configurationProvider": "ms-vscode.cmake-tools",
+  "cmake.configureOnOpen": true,
+  //"C_Cpp.intelliSenseEngine": "Disabled",
+  //"clangd.path": "C:Program Files//LLVM//bin//clangd.exe",
+  "clangd.arguments": [
+    "-log=verbose",
+    "-pretty",
+    "--background-index",
+    //"--query-driver=/bin/arm-buildroot-linux-gnueabihf-g++", //for cross compile usage
+    "--compile-commands-dir=D:Practice//C++Projects//OpenGLTemplate//build"
+  ]
+}
