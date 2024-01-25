@@ -7,19 +7,18 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 #Source Files
 set(SRC_DIR ${CMAKE_CURRENT_SOURCE_DIR}/src)
 set(LIB_DIR ${CMAKE_CURRENT_SOURCE_DIR}/externals)
-set(SOURCES ${SRC_DIR}/main.cpp)
-
+file(GLOB CHIP8_SRC CONFIGURE_DEPENDS "src/*.h" "src/*.cpp")
 # Executable definition and properties
-add_executable(${PROJECT_NAME} ${SOURCES})
+add_executable(${PROJECT_NAME} ${CHIP8_SRC})
 target_include_directories(${PROJECT_NAME} PRIVATE ${SRC_DIR})
 set_property(TARGET ${PROJECT_NAME} PROPERTY CXX_STANDARD 17)
 #This will enable gcc compiler to disable console
-if(MINGW)
-    target_link_options(${PROJECT_NAME} PRIVATE -mwindows)
-endif(MINGW)
-if(MSVC)
-    target_link_options(${PROJECT_NAME} PRIVATE -mwin32)
-endif(MSVC)
+# if(MINGW)
+#     target_link_options(${PROJECT_NAME} PRIVATE -mwindows)
+# endif(MINGW)
+# if(MSVC)
+#     target_link_options(${PROJECT_NAME} PRIVATE -mwin32)
+# endif(MSVC)
 
 # opengl
 find_package(OpenGL REQUIRED)
