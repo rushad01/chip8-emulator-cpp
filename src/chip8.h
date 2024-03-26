@@ -8,7 +8,7 @@ public:
     chip8();
     ~chip8();
     void emulate_cycle();
-    void load_game(const std::string &file_name);
+    bool load_game(const std::string &file_name);
     bool drawFlag;
     unsigned char gfx[64 * 32]; // display
     unsigned char key[16];      // Keypad
@@ -32,8 +32,9 @@ public:
         0xF0, 0x80, 0xF0, 0x80, 0x80  // F
     };
 
-private:
     void initialize();
+
+private:
     unsigned short opcode;      // OPCode of Chip8
     unsigned char memory[4096]; // memory of chip8
     unsigned char V[16];        // CPU Register of chip8

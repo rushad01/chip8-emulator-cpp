@@ -4,29 +4,41 @@ Chip-8 is a simple, interpreted, programming language which was first used on so
 
 ## Building the project
 
-First fetch all submodules using the below command
+First clone the repo with all submodules using the below command
 
 ```
-git pull && git submodule init && git submodule update && git submodule status
+git clone https://github.com/rushad01/chip8-emulator-cpp.git --recursive
+```
+If you didn't able to download all submodule using above comment then use the below command.
+
+```
+git pull && git submodule init && git submodule update --progress && git submodule status
 ```
 
-Once all of the submodules are fetched from github then run the below command to build the project.
+Note:GLM is totally optional. Its only present because my project template has it and I don't want spend time removing it.  
+
+Once all of the submodules are fetched from github then run the below command to build the project if you have only one compiler. CMake will detect it and setup everything according to it without any problem.
 
 ```
 mkdir build
 cd build
-cmake ..
+cmake -G"MinGW Makefiles" -DCMAKE_CXX_COMPILER=g++ -DCMAKE_C_COMPILER=gcc ..  //for Mingw GCC Toolchain
+make all
 ```
 
 ## Tools
 
 - CMake(build system)
 - clangd(lsp)
-- GCC/LLVM toolchain
+- GCC toolchain
+- VS Code Editor(clangd plugin,CMake,CMake Tools)
 
 ## Library
 
-- glfw
-- glm
-- glad
-- imgui
+- glfw(Window Management)
+- glm(Optional for this projetct)
+- glad(Higher level OpenGL API call)
+- imgui(Graphical User Interface)
+
+## CHIP8 Programs
+I used [Chip8 test suit](https://github.com/Timendus/chip8-test-suite) to test out my emulator. program folder contain roms from various repo. I will share their link here for clearification.

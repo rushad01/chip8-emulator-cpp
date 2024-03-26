@@ -9,7 +9,8 @@
     "--background-index",
     "--log=verbose",
     "--pretty",
-    "--compile-commands-dir=${workspaceFolder}/build/"
+    "--compile-commands-dir=${workspaceFolder}/build/",
+    "--query-driver=C:\\MinGW\\bin\\g++.exe,C:\\MinGW\\bin\\gcc.exe" //Important for gcc/mingw standard header. This can be found in compile_command.json files
   ],
   "[cpp]": {
     "editor.defaultFormatter": "llvm-vs-code-extensions.vscode-clangd"
