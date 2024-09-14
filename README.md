@@ -9,13 +9,12 @@ First clone the repo with all submodules using the below command
 ```
 git clone https://github.com/rushad01/chip8-emulator-cpp.git --recursive
 ```
+
 If you didn't able to download all submodule using above comment then use the below command.
 
 ```
 git pull && git submodule init && git submodule update --progress && git submodule status
 ```
-
-Note:GLM is totally optional. Its only present because my project template has it and I don't want spend time removing it.  
 
 Once all of the submodules are fetched from github then run the below command to build the project if you have only one compiler. CMake will detect it and setup everything according to it without any problem.
 
@@ -35,10 +34,19 @@ make all
 
 ## Library
 
-- glfw(Window Management)
-- glm(Optional for this projetct)
-- glad(Higher level OpenGL API call)
-- imgui(Graphical User Interface)
+- glfw
+- glm
+- glad
+- imgui
 
 ## CHIP8 Programs
+
 I used [Chip8 test suit](https://github.com/Timendus/chip8-test-suite) to test out my emulator. program folder contain roms from various repo. I will share their link here for clearification.
+
+## Running CHIP8 Programs
+
+From cmd or terminal use the below command for running the chip8 file. Use the files from programs folder. Executable of chip8 emulator will the in the build directory.
+
+```
+.\chip8-emulator-cpp path\to\valid_chip8_program.ch8
+```

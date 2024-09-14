@@ -5,7 +5,6 @@
 #include <ios>
 #include <iostream>
 #include <string>
-#include <type_traits>
 
 chip8::chip8() {
   //Nothing to be initialize

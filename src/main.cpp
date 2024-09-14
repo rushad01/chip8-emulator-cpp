@@ -20,7 +20,7 @@
 #define SCREEN_WIDTH 64
 #define SCREEN_HEIGHT 32
 
-//Selecting GPU
+//Selecting GPU.  If you don't have gpu comment this part.
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -31,6 +31,7 @@ __declspec(dllexport) int AmdPowerXpressRequestHighPerformance = 1;
 #ifdef __cplusplus
 }
 #endif
+//end of gpu selection.
 
 chip8 myChip8;
 Shader shader;
@@ -114,7 +115,7 @@ int main(int argc, char** argv) {
     glfwPollEvents();
   }
 
-  // glfwDestroyWindow(window);
+  glfwDestroyWindow(window);
   glfwTerminate();
 
   return 0;
@@ -123,8 +124,6 @@ int main(int argc, char** argv) {
 void window_size_callback(GLFWwindow* window, int width, int height) {
 
   glViewport(0, 0, width, height);  // Change the view port if needed
-
-  // Resize quad
 }
 
 // graphics api(OpenGL) keyprocessing
@@ -207,8 +206,6 @@ static void keypress_callback(GLFWwindow* window, int key, int scancode,
 }
 
 void drawPixel(int x, int y) {
-  // std::cout << "drawPixel(" << x << "," << y << ")"
-  //           << "\n";
   std::vector<glm::vec3> vertices;
   vertices.resize(4);
   vertices[0] =
@@ -245,14 +242,6 @@ void drawPixel(int x, int y) {
   glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
   glEnableVertexAttribArray(0);
 
-  // note that this is allowed, the call to glVertexAttribPointer registered VBO as the vertex attribute's bound vertex buffer object so afterwards we can safely unbind
-  glBindBuffer(GL_ARRAY_BUFFER, 0);
-
-  // remember: do NOT unbind the EBO while a VAO is active as the bound element buffer object IS stored in the VAO; keep the EBO bound.
-  //glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-
-  // You can unbind the VAO afterwards so other VAO calls won't accidentally modify this VAO, but this rarely happens. Modifying other
-  // VAOs requires a call to glBindVertexArray anyways so we generally don't unbind VAOs (nor VBOs) when it's not directly necessary.
   glBindVertexArray(0);
   shader.use();
   glBindVertexArray(VAO);
@@ -265,7 +254,6 @@ void updateQuads(const chip8& Chip8) {
     for (unsigned int x = 0; x < 64; x++) {
       if (Chip8.gfx[x + (y * 64)])
         drawPixel(x, y);
-      //std::cout << "x: " << x << " y: " << y << "\n";
     }
   }
 }

@@ -11,13 +11,15 @@
 void Shader::compileShader() {
   unsigned int vertex, fragment;
   // vertex shader
+  const char* vCode = m_vertex_shader_code.c_str();
   vertex = glCreateShader(GL_VERTEX_SHADER);
-  glShaderSource(vertex, 1, &m_vertex_shader_code, NULL);
+  glShaderSource(vertex, 1, &vCode, NULL);
   glCompileShader(vertex);
   checkShaderErrors(vertex, "VERTEX");
   // fragment Shader
+  const char* fCode = m_fragment_shader_code.c_str();
   fragment = glCreateShader(GL_FRAGMENT_SHADER);
-  glShaderSource(fragment, 1, &m_fragment_shader_code, NULL);
+  glShaderSource(fragment, 1, &fCode, NULL);
   glCompileShader(fragment);
   checkShaderErrors(fragment, "FRAGMENT");
   // shader Program
@@ -83,23 +85,15 @@ void Shader::loadShaders(const char* vertexShaderFilePath,
     vShaderFile.close();
     fShaderFile.close();
     // convert stream into string
-    vertexCode = vShaderStream.str();
-    fragmentCode = fShaderStream.str();
+    m_vertex_shader_code = vShaderStream.str();
+    m_fragment_shader_code = fShaderStream.str();
   } catch (std::ifstream::failure& e) {
     std::cout << "ERROR::SHADER::FILE_NOT_SUCCESSFULLY_READ: " << e.what()
               << std::endl;
   }
   //convert into c string
-  m_vertex_shader_code = vertexCode.c_str();
-  m_fragment_shader_code = fragmentCode.c_str();
-}
-
-void Shader::loadVertexShader(const char* vertex_shader_code) {
-  this->m_vertex_shader_code = vertex_shader_code;
-}
-
-void Shader::loadFragmentShader(const char* fragment_shader_code) {
-  this->m_fragment_shader_code = fragment_shader_code;
+  // m_vertex_shader_code = vertexCode.c_str();
+  // m_fragment_shader_code = fragmentCode.c_str();
 }
 
 void Shader::setBool(const std::string& name, bool value) const {
