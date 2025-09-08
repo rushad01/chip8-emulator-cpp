@@ -1,6 +1,7 @@
 #include "chip8.h"
 #include <cstdlib>
 #include <ctime>
+#include <filesystem>
 #include <fstream>
 #include <ios>
 #include <iostream>
@@ -70,13 +71,12 @@ void chip8::emulate_cycle() {
   //std::cout << "Opcode [0x0000]: 0x0" << opcode << "\n";
   switch (opcode & 0xF000) {
     case 0x0000: {
-      switch (opcode & 0xF00) {
+      switch (opcode & 0x000F) {
         case 0x0000:  // 0x00E0: Clears the screen
           for (int i = 0; i < 2048; i++)
             gfx[i] = 0x0;
           drawFlag = true;
           PC = PC + 2;
-          //std::cout << "clear" << std::endl;
           break;
         case 0x000E:  // 0x00EE: Returns from subroutine
           --sp;
@@ -87,40 +87,41 @@ void chip8::emulate_cycle() {
           std::cout << "Unknown Opcode [0x0000]: 0x0" << opcode << "\n";
       }
     } break;
-    case 0x1000:  //1nnn - JP addr .Jump to location nnn
-      PC = opcode & 0x0F00;
-      //std::cout << "jump to " << PC << std::endl;
-      break;
+    case 0x1000: {  //1nnn - JP addr .Jump to location nnn
+      PC = (opcode & 0x0FFF);
+      //std::cout << "1nn: Jump to location(" << (opcode & 0x0F00) << ")\n";
+    } break;
     case 0x2000:  //2nnn - CALL addr .Call subroutine at nnn.
       stack[sp] = PC;
       ++sp;
       PC = (opcode & 0x0FFF);
       break;
     case 0x3000:  //3xkk - SE Vx, byte Skip next instruction if Vx = kk.
-      if (V[(opcode & 0x0F00) >> 8] == (opcode & 0x00FF))
+      if (V[(opcode & 0x0F00) >> 8] == (opcode & 0x00FF)) {
         PC += 4;
-      else
+      } else {
         PC += 2;
+      }
       break;
     case 0x4000:  //4xkk - SNE Vx, byte Skip next instruction if Vx != kk.
-      if (V[(opcode & 0x0F00) >> 8] != (opcode & 0x00FF))
+      if (V[(opcode & 0x0F00) >> 8] != (opcode & 0x00FF)) {
         PC += 4;
-      else
+      } else
         PC += 2;
       break;
     case 0x5000:  // 5xy0 - SE Vx,Vy Skip next instruction if Vx = Vy.
-      if (V[(opcode & 0x0F00) >> 8] == V[(opcode & 0x00F0) >> 4])
+      if (V[(opcode & 0x0F00) >> 8] == V[(opcode & 0x00F0) >> 4]) {
         PC += 4;
-      else
+      } else
         PC += 2;
       break;
     case 0x6000:  //6xkk - LD Vx, byte .Set Vx = kk. The interpreter puts the value kk into register Vx.
       V[(opcode & 0x0F00) >> 8] = (opcode & 0x00FF);
-      PC += 2;
+      { PC += 2; }
       //std::cout << "set v" << ((opcode & 0x0F00) >> 8) << " to "<< (opcode & 0x00FF) << std::endl;
       break;
     case 0x7000:  //7xkk - ADD Vx, byte.Set Vx = Vx + kk. Adds the value kk to the value of register Vx, then stores the result in Vx
-      V[(opcode & 0x0F00) >> 8] = V[(opcode & 0x0F00) >> 8] + (opcode & 0x00FF);
+      V[(opcode & 0x0F00) >> 8] += (opcode & 0x00FF);
       PC += 2;
       //std::cout << "add " << (opcode & 0x00FF) << " to v"<< ((opcode & 0x0F00) >> 8) << std::endl;
       break;
@@ -131,18 +132,15 @@ void chip8::emulate_cycle() {
           PC += 2;
           break;
         case 0x0001:  //8XY1 - OR Vx,Vy
-          V[(opcode & 0x0F00) >> 8] =
-              V[(opcode & 0x0F00) >> 8] | V[(opcode & 0x00F0) >> 4];
+          V[(opcode & 0x0F00) >> 8] |= V[(opcode & 0x00F0) >> 4];
           PC += 2;
           break;
-        case 0x0002:  //8XY2 - AND Vx,Vy
-          V[(opcode & 0x0F00) >> 8] =
-              V[(opcode & 0x0F00) >> 8] & V[(opcode & 0x00F0) >> 4];
+        case 0x0002:  //8xy2 - AND Vx,Vy
+          V[(opcode & 0x0F00) >> 8] &= V[(opcode & 0x00F0) >> 4];
           PC += 2;
           break;
         case 0x0003:  //8xy3 - XOR Vx,Vy
-          V[(opcode & 0x0F00) >> 8] =
-              V[(opcode & 0x0F00) >> 8] ^ V[(opcode & 0x00F0) >> 4];
+          V[(opcode & 0x0F00) >> 8] ^= V[(opcode & 0x00F0) >> 4];
           PC += 2;
           break;
         case 0x0004:
@@ -156,7 +154,7 @@ void chip8::emulate_cycle() {
               V[(opcode & 0x0F00) >> 8] + V[(opcode & 0x00F0) >> 4];
           PC += 2;
           break;
-        case 0x0005:  //8XY5 - SUB Vx,Vy
+        case 0x0005:  //8xy5 - SUB Vx,Vy
           if (V[(opcode & 0x00F0) >> 4] > V[(opcode & 0x0F00) >> 8])
             V[0xF] = 0;
           else
@@ -165,20 +163,24 @@ void chip8::emulate_cycle() {
               V[(opcode & 0x0F00) >> 8] - V[(opcode & 0x00F0) >> 4];
           PC += 2;
           break;
-        case 0x0006:
+        case 0x0006:  //8xy6
           V[0xF] = V[(opcode & 0x0F00) >> 8] & 0x1;
           V[(opcode & 0x0F00) >> 8] >>= 1;
           PC += 2;
           break;
-        case 0x0007:
-          if (V[(opcode & 0x00F0) >> 4] > V[(opcode & 0x0F00) >> 8])
-            V[0xF] = 1;
-          else
+        case 0x0007:  //8xy7
+          if (V[(opcode & 0x0F00) >> 8] >
+              V[(opcode & 0x00F0) >> 4]) {  // Vx > Vy, so a borrow is needed
             V[0xF] = 0;
+          } else {
+            V[0xF] = 1;
+          }
+          V[(opcode & 0x0F00) >> 8] =
+              V[(opcode & 0x00F0) >> 4] - V[(opcode & 0x0F00) >> 8];
           PC += 2;
           break;
-        case 0x000E:
-          V[0xF] = V[(opcode & 0x0F00) >> 8] >> 8;
+        case 0x000E:  //8xyE
+          V[0xF] = (V[(opcode & 0x0F00) >> 8] & 0x80) ? 1 : 0;
           V[(opcode & 0x0F00) >> 8] <<= 1;
           PC += 2;
           break;
@@ -186,17 +188,16 @@ void chip8::emulate_cycle() {
           std::cout << "Unknown opcode: 0x8" << opcode << "\n";
       }
       break;
-    case 0x9000:
+    case 0x9000:  //9xy0
       if (V[(opcode & 0x0F00) >> 8] != V[(opcode & 0x00F0) >> 4])
         PC += 4;
       else
         PC += 2;
       break;
-    case 0xA000:  // ANNN: Sets I to the address NNN
+    case 0xA000:  // Annn: Sets I to the address NNN
     {
       I = (opcode & 0x0FFF);
       PC = PC + 2;
-      //std::cout << "set index to " << (opcode & 0x0FFF) << std::endl;
       break;
     }
     case 0xB000:  // Bnnn - JP V0, addr Jump to location nnn + V0. The program counter is set to nnn plus the value of V0.
@@ -213,20 +214,24 @@ void chip8::emulate_cycle() {
       // Sprites are XORed onto the existing screen.If this causes any pixels to be erased, VF is set to 1, otherwise it is set to 0.
       // If the sprite is positioned so part of itis outside the coordinates of the display, it wraps around to the opposite side of the screen.
       {
-        unsigned short Vx = V[(opcode & 0x0F00) >> 8];
-        unsigned short Vy = V[(opcode & 0x00F0) >> 4];
+        unsigned short x =
+            V[(opcode & 0x0F00) >> 8] % 64;  // Wrapping on x-axis
+        unsigned short y =
+            V[(opcode & 0x00F0) >> 4] % 32;  // Wrapping on y-axis
         unsigned short height = (opcode & 0x000F);
         unsigned short pixel;
-        //std::cout << "draw (" << Vx << ", " << Vy << ")" << std::endl;
         V[0xF] = 0;
         for (int yline = 0; yline < height; yline++) {
           pixel = memory[I + yline];
           for (int xline = 0; xline < 8; xline++) {
             if ((pixel & (0x80 >> xline)) != 0) {
-              if (gfx[(Vx + xline + ((Vy + yline) * 64))] != 0) {
+              // The gfx array index needs to handle wrapping
+              int draw_x = (x + xline) % 64;
+              int draw_y = (y + yline) % 32;
+              if (gfx[draw_x + (draw_y * 64)] == 1) {  // Check for collision
                 V[0xF] = 1;
               }
-              gfx[Vx + xline + ((Vy + yline) * 64)] ^= 1;
+              gfx[draw_x + (draw_y * 64)] ^= 1;
             }
           }
         }
@@ -264,15 +269,21 @@ void chip8::emulate_cycle() {
         {
           bool key_press = false;
           for (int i = 0; i < 16; ++i) {
-            if (key[i] != 0)
+            if (key[i] != 0) {
               V[(opcode & 0x0F00) >> 8] = i;
-            key_press = true;
+              key_press = true;
+              break;  // Exit the loop once a key is found
+            }
           }
-          //If we didn't have any key pressed we skip the cycle eniterly
-          if (!key_press)
-            return;
 
-          PC += 2;
+          if (!key_press) {
+            // If no key is pressed, we don't advance the PC.
+            // This effectively "stalls" the emulation until a key is pressed.
+            PC = PC;
+          } else {
+            // If a key was pressed, we advance the PC to the next instruction.
+            PC += 2;
+          }
         } break;
         case 0x0015:  //FX15 - LD DT, VX .Load the value of VX into the delay timer DT.
           delay_timer = V[(opcode & 0x0F00) >> 8];
@@ -291,31 +302,28 @@ void chip8::emulate_cycle() {
           PC += 2;
           break;
         case 0x0029:  //FX29 - LD F, VX. Set the location of the sprite for the digit VX to I.
-          //The font sprites start at address 0x000, and contain the hexadecimal digits from 1..F.
-          //Each font has a length of 0x05 bytes. The memory address for the value in VX is put in I
           I = V[(opcode & 0x0F00) >> 8] * 0x05;
           PC += 2;
           break;
         case 0x0033:  //FX33 - LD B, VX. Store the binary-coded decimal in VX and put it in three consecutive memory slots starting at I.
-          //VX is a byte, so it is in 0…255. The interpreter takes the value in VX (for example the decimal value 174, or 0xAE in hex), converts it into a decimal and separates the hundreds, the tens and the ones (1, 7 and 4 respectively).
-          //Then, it stores them in three memory locations starting at I (1 to I, 7 to I+1 and 4 to I+2).
           memory[I] = V[(opcode & 0x0F00) >> 8] / 100;
           memory[I + 1] = (V[(opcode & 0x0F00) >> 8] / 10) % 10;
-          memory[I + 2] = (V[(opcode & 0x0F00) >> 8] % 100) % 10;
+          memory[I + 2] = (V[(opcode & 0x0F00) >> 8]) % 10;
           PC += 2;
           break;
-        case 0x0055:  //FX55 - LD [I], VX.Store registers from V0 to VX in the main memory, starting at location I.
+        case 0x0055:  //0xFx55 - LD [I], VX.Store registers from V0 to VX in the main memory, starting at location I.
           //Note that X is the number of the register, so we can use it in the loop.
-          for (int i = 0; i < ((opcode & 0x0F00) >> 8); ++i) {
+          for (int i = 0; i <= ((opcode & 0x0F00) >> 8); ++i) {
             memory[I + i] = V[i];
           }
-          I = I + ((opcode & 0x0F00) >> 8) + 1;  //I = I + x + 1
+          I = I + ((opcode & 0x0F00) >> 8) + 1;  // I=I+x+1 quirk
           PC += 2;
           break;
-        case 0x065:  //FX65 - LD VX, [I]. Load the memory data starting at address I into the registers V0 to VX.
-          for (int i = 0; i <= ((opcode & 0x0F00) >> 8); ++i)
+        case 0x0065:  //0xFx65 - LD VX, [I]. Load the memory data starting at address I into the registers V0 to VX.
+          for (int i = 0; i <= ((opcode & 0x0F00) >> 8); ++i) {
             V[i] = memory[I + i];
-          I = I + ((opcode & 0x0F00) >> 8) + 1;  //I = I + x +1
+          }
+          I = I + ((opcode & 0x0F00) >> 8) + 1;  // I=I+x+1 quirk
           PC += 2;
           break;
         default:
@@ -355,7 +363,10 @@ bool chip8::load_game(const std::string& file_name) {
     memory[i + 512] = b;
     i++;
   }
+  std::filesystem::path file = file_name;
+  int size = std::filesystem::file_size(file);
   input_file.close();
   std::cout << "Successfully parsed CHIP8 file......\n";
+  std::cout << "File Size: " << size << "\n";
   return true;
 }

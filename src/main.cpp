@@ -1,4 +1,3 @@
-#include <stdint.h>
 #include <cstdio>
 #include <iostream>
 #include <vector>
@@ -77,7 +76,7 @@ int main(int argc, char** argv) {
   GLFWwindow* window = glfwCreateWindow(SCREEN_WIDTH * 10, SCREEN_HEIGHT * 10,
                                         "CHIP8 Emulator", NULL, NULL);
   if (window == NULL) {
-    std::cout << "Failed to create GLFW window" << std::endl;
+    std::cout << "Failed to create GLFW window\n";
     glfwTerminate();
     return -1;
   }
@@ -93,7 +92,7 @@ int main(int argc, char** argv) {
   glfwSwapInterval(1);  // Enable vsync
 
   if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
-    std::cout << "Failed to initialize OpenGL context" << std::endl;
+    std::cout << "Failed to initialize OpenGL context\n";
     return -1;
   }
   shader.loadShaders("../resources/shader.vert", "../resources/shader.frag");
@@ -102,19 +101,36 @@ int main(int argc, char** argv) {
   openglInformation();
   shader.compileShader();
 
+  //FPS calculation
+  double t = 0.0;
+  constexpr double dt = 1 / 60.0;
+
+  double currentTime = glfwGetTime();
+  double accumulator = 0.0;
+
   // Main loop
   while (!glfwWindowShouldClose(window)) {
-    glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
+    glClearColor(0.0f, 0.0f, 0.0, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT);
-    myChip8.emulate_cycle();
+    glfwPollEvents();
+
+    double endTime = glfwGetTime();
+    double frameTime = (endTime - currentTime) / dt;
+    currentTime = endTime;
+    accumulator += frameTime;
+
+    while (accumulator >= dt) {
+      myChip8.emulate_cycle();
+      accumulator -= dt;
+      t += dt;
+    }
+
     if (myChip8.drawFlag == true) {
       updateQuads(myChip8);
-      myChip8.drawFlag = false;
       glfwSwapBuffers(window);
+      myChip8.drawFlag = false;
     }
-    glfwPollEvents();
   }
-
   glfwDestroyWindow(window);
   glfwTerminate();
 
